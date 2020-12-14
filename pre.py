@@ -23,9 +23,9 @@ class Config():
         self.epoch = 10000  #leanring epoch
         self.lr = 0.0001     #learning rate
         self.ts = 12        #time step
-        self.bs = 600         #batch size
+        self.bs = 3000         #batch size
         self.gl = [32,64] #graph layers
-        self.dl = [2000,1000]   #dense layers
+        self.dl = [200,100]   #dense layers
         self.train_path = 'train.xlsx'
         self.test_path  = 'test.xlsx'
         self.adj_path = 'adj.xlsx'
@@ -113,6 +113,7 @@ def predict(config,model_name='-1'):
     pre = un_normalize(out,label)
     print(analysis(pre,label[:-config.ts]))
     #axis = list(range(len(pre)))
+    pdb.set_trace()
     plt.plot(pre)
     plt.plot(label[:-config.ts])
     plt.show()
@@ -121,8 +122,9 @@ def predict(config,model_name='-1'):
 
 
 def main():
-    TIME = time.strftime('%Y-%m-%d-%H-%S-%Y',time.localtime())
-    #TIME='-1'
+    TIME = time.strftime('%y-%m-%d-%H-%M-%S',time.localtime())
+    #TIME = '2020-12-14-15-24-2020'
+    TIME='-1'
     print(TIME)
     config = Config()
     train(config,TIME)
