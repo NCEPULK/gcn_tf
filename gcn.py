@@ -15,7 +15,7 @@ import tensorflow as tf
 names = locals()
 
 class Graph_convolution():
-    def __init__(self,input_dim,output_dim,bias=True,activation='relu'):
+    def __init__(self,input_dim,output_dim,bias=True,activation='sigmoid'):
         self.input_dim = input_dim
         self.output_dim = output_dim
         self.weight = tf.Variable(tf.random_normal([input_dim,output_dim]))
@@ -29,17 +29,16 @@ class Graph_convolution():
             self.act = tf.nn.sigmoid
     
     
-    def forward(self,x,adj):
-        batch = x.shape[0].value
-        nodes = x.shape[1].value
-        out = tf.transpose(x,[1,0,2])
-        out = tf.reshape(out,[nodes,-1])
-        out = tf.matmul(adj,out)
-        out = tf.reshape(out,[-1,nodes,self.input_dim])
-        out = tf.transpose(out,[1,0,2])
-        out = tf.reshape(out,[-1,self.input_dim])
-        out = tf.matmul(out,self.weight)
-        out = tf.reshape(out,[-1,nodes,self.output_dim])
+    def forward(self,x,adj):#X[B,N,T],adj[N,N]
+        nodes = x.shape[1].value        #N
+        out = tf.transpose(x,[1,0,2])   #out[N,B,T]
+        out = tf.reshape(out,[nodes,-1])#out[N,B*T]
+        out = tf.matmul(adj,out)        #out[N,B*T]
+        out = tf.reshape(out,[nodes,-1,self.input_dim]) #out[N,B,T]
+        out = tf.transpose(out,[1,0,2])                 #out[B,N,T]
+        out = tf.reshape(out,[-1,self.input_dim])       #out[B*N,T]
+        out = tf.matmul(out,self.weight)                #out[B*N,T1]
+        out = tf.reshape(out,[-1,nodes,self.output_dim])#out[B,N,T1]
         if self.bias:
             out +=self.bias
         return self.act(out)
@@ -78,23 +77,26 @@ class GCN():
         self.dense_net = dense_net
         self.graph_layer = []
         self.dense_layer = []
+        
         gcn_net = [input_dim]+self.gcn_net
         for i in range(len(gcn_net)-1):
             with tf.name_scope('Graph_variables{}'.format(i+1)):
                 self.graph_layer.append(Graph_convolution(gcn_net[i],gcn_net[i+1]))
+        
         dense_net = [int(gcn_net[-1]*self.nodes)]+self.dense_net
-
         for i in range(len(dense_net)-1):
             with tf.name_scope('Dense_variables{}'.format(i+1)):
                 self.dense_layer.append(Dense_layer(dense_net[i],dense_net[i+1],True))
+        
         self.output_layer=Dense_layer(dense_net[-1],self.output_dim,False)
     
     def forward(self,x,adj):
         out = x
+        gcn_net = [int(x.shape[-1])]+self.gcn_net
         for i,layer in enumerate(self.graph_layer):
             with tf.name_scope('Graph_layer{}'.format(i+1)):
                 out = layer(out,adj)
-        out = tf.reshape(out,[-1,self.nodes*self.gcn_net[-1]])
+        out = tf.reshape(out,[-1,self.nodes*gcn_net[-1]])
         for i,layer in enumerate(self.dense_layer):
             with tf.name_scope('Dense_layer{}'.format(i+1)):
                 out = layer(out)

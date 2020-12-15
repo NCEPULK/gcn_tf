@@ -20,16 +20,20 @@ from func import data_read,normalize,un_normalize,analysis
 names = locals()
 class Config():
     def __init__(self):
-        self.epoch = 10000  #leanring epoch
+        self.epoch = 3000  #leanring epoch
         self.lr = 0.0001     #learning rate
         self.ts = 12        #time step
-        self.bs = 3000         #batch size
-        self.gl = [32,64] #graph layers
-        self.dl = [200,100]   #dense layers
+        self.bs = 30         #batch size
         self.train_path = 'train.xlsx'
         self.test_path  = 'test.xlsx'
         self.adj_path = 'adj.xlsx'
         self.nodes = 27     #graph nodes
+        self.gl = [7,1] #graph layers
+        self.dl = [5]   #dense layers
+
+
+    def show(self):
+        s
 
 def compute_loss(pre,lab):
     return tf.reduce_mean(tf.square(pre-lab))
@@ -113,9 +117,9 @@ def predict(config,model_name='-1'):
     pre = un_normalize(out,label)
     print(analysis(pre,label[:-config.ts]))
     #axis = list(range(len(pre)))
-    pdb.set_trace()
-    plt.plot(pre)
-    plt.plot(label[:-config.ts])
+    #pdb.set_trace()
+    plt.plot(pre,'r')
+    plt.plot(label[:-config.ts],'g')
     plt.show()
 
 
@@ -127,7 +131,7 @@ def main():
     TIME='-1'
     print(TIME)
     config = Config()
-    train(config,TIME)
+    #train(config,TIME)
     tf.reset_default_graph()
     predict(config,TIME)
 
