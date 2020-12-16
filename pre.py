@@ -22,14 +22,14 @@ class Config():
     def __init__(self):
         self.epoch = 3000  #leanring epoch
         self.lr = 0.0001     #learning rate
-        self.ts = 12        #time step
+        self.ts = 3        #time step
         self.bs = 30         #batch size
         self.train_path = 'train.xlsx'
         self.test_path  = 'test.xlsx'
         self.adj_path = 'adj.xlsx'
         self.nodes = 27     #graph nodes
-        self.gl = [7,1] #graph layers
-        self.dl = [5]   #dense layers
+        self.gl = [12,24] #graph layers
+        self.dl = [24]   #dense layers
 
 
     def show(self):
@@ -115,25 +115,28 @@ def predict(config,model_name='-1'):
     _data = batch_data.transpose([0,2,1])
     out=sess.run(out,feed_dict={ph_adj:adj,ph_data:_data,ph_label:batch_label[0]})
     pre = un_normalize(out,label)
-    print(analysis(pre,label[:-config.ts]))
+    ana = analysis(pre,label[config.ts:])
+    save_data = pd.DataFrame({'pre':np.reshape(pre,-1),'lab':np.reshape(label[config.ts:],-1)})
+    save_ana  = pd.DataFrame(ana,index=[0])
+    save_data.to_excel('./output/4/train_data_output.xlsx')
+    save_ana.to_excel('./output/4/train_data_analysis.xlsx')
     #axis = list(range(len(pre)))
-    #pdb.set_trace()
     plt.plot(pre,'r')
-    plt.plot(label[:-config.ts],'g')
+    plt.plot(label[config.ts:],'g')
     plt.show()
-
+    
 
 
 
 def main():
     TIME = time.strftime('%y-%m-%d-%H-%M-%S',time.localtime())
-    #TIME = '2020-12-14-15-24-2020'
-    TIME='-1'
-    print(TIME)
+    #model_name = TIME
+    model_name='3'
+    print(model_name)
     config = Config()
-    #train(config,TIME)
+    train(config,model_name)
     tf.reset_default_graph()
-    predict(config,TIME)
+    #predict(config,model_name)
 
 if __name__=='__main__':
     main()
